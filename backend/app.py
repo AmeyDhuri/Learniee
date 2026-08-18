@@ -86,6 +86,105 @@ def create_app():
             "email": user.email
         }, 200
 
+    @app.route("/api/courses", methods=["GET"])
+    def get_courses():
+        search = request.args.get("search", "").strip()
+        subject = request.args.get("subject")
+        grade = request.args.get("grade")
+        min_price = request.args.get("min_price")
+        max_price = request.args.get("max_price")
+        min_rating = request.args.get("min_rating")
+
+        try:
+            if grade is not None:
+                grade = int(grade)
+
+            if min_price is not None:
+                min_price = float(min_price)
+
+            if max_price is not None:
+                max_price = float(max_price)
+
+            if min_rating is not None:
+                min_rating = float(min_rating)
+
+        except ValueError:
+            return {
+                "error": "Invalid filter value. grade must be an integer and price/rating values must be numbers."
+            }, 400
+
+        sort = request.args.get("sort", "default")
+
+        page = request.args.get("page", 1, type=int)
+        per_page = request.args.get("per_page", 6, type=int)
+
+        query = Course.query
+
+        if search:
+            query = query.filter(
+                db.or_(
+                    Course.name.ilike(f"%{search}%"),
+                    Course.subject.ilike(f"%{search}%")
+                )
+            )
+
+        if subject:
+            query = query.filter(Course.subject == subject)
+
+        if grade:
+            query = query.filter(Course.grade == grade)
+
+        if min_price is not None:
+            query = query.filter(Course.price >= min_price)
+
+        if max_price is not None:
+            query = query.filter(Course.price <= max_price)
+
+        if min_rating is not None:
+            query = query.filter(Course.rating >= min_rating)
+
+
+        if sort == "price_asc":
+            query = query.order_by(Course.price.asc())
+
+        elif sort == "price_desc":
+            query = query.order_by(Course.price.desc())
+
+        elif sort == "rating_desc":
+            query = query.order_by(Course.rating.desc())
+
+
+        pagination = query.paginate(
+            page=page,
+            per_page=per_page,
+            error_out=False
+        )
+
+        courses = [
+            {
+                "id": course.id,
+                "name": course.name,
+                "subject": course.subject,
+                "grade": course.grade,
+                "price": course.price,
+                "teacher": course.teacher,
+                "rating": course.rating
+            }
+            for course in pagination.items
+        ]
+
+        return {
+            "courses": courses,
+            "pagination": {
+                "page": pagination.page,
+                "per_page": pagination.per_page,
+                "total": pagination.total,
+                "pages": pagination.pages,
+                "has_next": pagination.has_next,
+                "has_prev": pagination.has_prev
+            }
+        }, 200
+
     with app.app_context():
         db.create_all()
 
