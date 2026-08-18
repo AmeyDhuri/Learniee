@@ -1,10 +1,20 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import Login from "./Login"
+import Signup from "./Signup"
+import Dashboard from "./Dashboard"
+import ProtectedRoute from "./ProtectedRoute"
+
 function App() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <h1 className="text-4xl font-bold">
-        Learniee
-      </h1>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
+
+        <Route path="/" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 
