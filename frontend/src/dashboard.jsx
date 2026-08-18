@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom"
 function Dashboard() {
   const navigate = useNavigate()
 
+  const [user, setUser] = useState(null)
   const [courses, setCourses] = useState([])
   const [pagination, setPagination] = useState({
     page: 1,
@@ -24,6 +25,36 @@ function Dashboard() {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+
+  const fetchUser = async () => {
+    const token = localStorage.getItem("access_token")
+
+    if (!token) {
+      navigate("/login", { replace: true })
+      return
+    }
+
+    try {
+      const response = await fetch("http://127.0.0.1:5000/api/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        localStorage.removeItem("access_token")
+        navigate("/login", { replace: true })
+        return
+      }
+
+      setUser(data)
+    } catch (error) {
+      console.error("Failed to fetch user:", error)
+      setError("Unable to load user information")
+    }
+  }
 
   const fetchCourses = async (page = 1) => {
     setLoading(true)
@@ -64,6 +95,7 @@ function Dashboard() {
   }
 
   useEffect(() => {
+    fetchUser()
     fetchCourses()
   }, [])
 
@@ -88,6 +120,15 @@ function Dashboard() {
         <div>
           <h1>Course Explorer</h1>
           <p>Find the right course for your child</p>
+
+          {user && (
+            <div>
+              <p>
+                Welcome, <strong>{user.name}</strong> 👋
+              </p>
+              <p>{user.email}</p>
+            </div>
+          )}
         </div>
 
         <button onClick={handleLogout}>
