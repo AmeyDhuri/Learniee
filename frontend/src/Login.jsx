@@ -9,8 +9,8 @@ function Login() {
 
   const navigate = useNavigate()
 
-  const handleLogin = async (event) => {
-    event.preventDefault()
+  const handleLogin = async (e) => {
+    e.preventDefault()
 
     setMessage("")
     setLoading(true)
@@ -37,7 +37,9 @@ function Login() {
       localStorage.setItem("access_token", data.access_token)
 
       navigate("/dashboard")
+
     } catch (error) {
+      console.error("Login error:", error)
       setMessage("Unable to connect to the server")
     } finally {
       setLoading(false)
@@ -45,45 +47,60 @@ function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <form
-        onSubmit={handleLogin}
-        className="w-full max-w-md space-y-4 rounded-xl border p-6"
-      >
-        <h1 className="text-3xl font-bold">Login</h1>
+    <div className="auth-page">
+      <div className="auth-card">
+        <h1>Welcome Back</h1>
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          className="w-full rounded border px-3 py-2"
-          required
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          className="w-full rounded border px-3 py-2"
-          required
-        />
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded bg-black px-4 py-2 text-white disabled:opacity-50"
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
+        <p className="auth-subtitle">
+          Login to continue exploring courses
+        </p>
 
         {message && (
-          <p className="text-sm text-red-600">
+          <p className="error-message">
             {message}
           </p>
         )}
-      </form>
+
+        <form onSubmit={handleLogin}>
+
+          <div className="form-group">
+            <label>Email</label>
+
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter email"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Password</label>
+
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password"
+              required
+            />
+          </div>
+
+          <button type="submit" className="auth-button" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
+          </button>
+
+        </form>
+
+        <p className="auth-footer">
+          Don't have an account?{" "}
+          <button onClick={() => navigate("/signup")}>
+            Sign Up
+          </button>
+        </p>
+
+      </div>
     </div>
   )
 }
